@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.*
 import jp.co.yumemi.android.code_check.databinding.FragmentSearchBinding
+import jp.co.yumemi.android.code_check.databinding.LayoutItemBinding
 
 class SearchFragment: Fragment(R.layout.fragment_search){
 
@@ -23,12 +24,12 @@ class SearchFragment: Fragment(R.layout.fragment_search){
 
         val viewModel= SearchViewModel()
 
-        val layoutManager= LinearLayoutManager(context!!)
+        val layoutManager= LinearLayoutManager(requireContext())
 
 
         // RecyclerView における境界線
         val dividerItemDecoration=
-            DividerItemDecoration(context!!, layoutManager.orientation)
+            DividerItemDecoration(requireContext(), layoutManager.orientation)
 
         val adapter= ItemListAdapter(object : ItemListAdapter.OnItemClickListener{
 
@@ -43,8 +44,8 @@ class SearchFragment: Fragment(R.layout.fragment_search){
                 if (action== EditorInfo.IME_ACTION_SEARCH){
                     editText.text.toString().let {
                         // TODO this viewModel fun is comment out now
-//                        viewModel.searchResults(it).apply{
-//                            _adapter.submitList(this)
+//                        viewModel.searchRepository(it).apply{
+//                            adapter.submitList(this)
 //                        }
                     }
                     return@setOnEditorActionListener true
@@ -95,10 +96,7 @@ val Diff_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>(){
 //表示するデータの型DetailItem，次に, ViewHolderの型を指定する
 class ItemListAdapter(
     private val itemClickListener: OnItemClickListener,
-) : ListAdapter<DetailItem, ItemListAdapter.DetailItemViewHolder>(Diff_UTIL_ITEM_CALLBACK){
-
-    //bind fun で、Viewと受け取ったObjectを結び付ける
-    class DetailItemViewHolder(view: View): RecyclerView.ViewHolder(view)
+) : ListAdapter<DetailItem, DetailItemViewHolder>(Diff_UTIL_ITEM_CALLBACK){
 
     interface OnItemClickListener {
     	fun itemClick(DetailItem: DetailItem)
@@ -107,25 +105,31 @@ class ItemListAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DetailItemViewHolder {
 
         // 生成されたBinding Classを使えば、fromが必要なくなる?　そもそも、fromの意味とは?
-    	val view= LayoutInflater.from(parent.context)
-            .inflate(R.layout.layout_item, parent, false)
+    	val layoutInflater = LayoutInflater.from(parent.context)
+        val binding = LayoutItemBinding.inflate(layoutInflater, parent, false)
 
-    	return DetailItemViewHolder(view)
+        return DetailItemViewHolder(binding)
     }
 
     // 生成されたBinding Classを引数で渡す。
     override fun onBindViewHolder(holderDetailItem: DetailItemViewHolder, position: Int) {
 
-        //holder.bind(getItem(position))
-    	val item= getItem(position)
-
-        //ここで強制キャストが行われてるのか この処理は、フルネームを表示するためのものである。
-        (holderDetailItem.itemView.findViewById<View>(R.id.repositoryNameView) as TextView).text=
-            item.name
+        holderDetailItem.bind(getItem(position))
 
         // click されたときに、何を渡すのかを決める必要がある
     	holderDetailItem.itemView.setOnClickListener{
-     		itemClickListener.itemClick(item)
+     		itemClickListener.itemClick(getItem(position))
     	}
+    }
+}
+
+//bind fun で、Viewと受け取ったObjectを結び付ける
+class DetailItemViewHolder(
+    private val binding: LayoutItemBinding
+): RecyclerView.ViewHolder(binding.root){
+
+    // Objectを渡して、このメソッドでバインドする
+    fun bind(detailItem: DetailItem) {
+        binding.repositoryNameView.text = detailItem.name
     }
 }
