@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.*
 import jp.co.yumemi.android.code_check.databinding.FragmentSearchBinding
 
@@ -71,28 +70,34 @@ class SearchFragment: Fragment(R.layout.fragment_search){
 //    }
 }
 
-val diff_util= object: DiffUtil.ItemCallback<DetailItem>(){
+// 作成したDiffUtilは，ViewHolderの中で呼び出しを行う
+val Diff_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>(){
+
+    // オブジェクト特有の値を用いて，比較を行う．今回は，それぞれのオブジェクトの名前の比較を行う
     override fun areItemsTheSame(
         oldDetailItem: DetailItem,
         newDetailItem: DetailItem
     ): Boolean {
-        return oldDetailItem.name== newDetailItem.name
+        return oldDetailItem.name == newDetailItem.name
     }
 
+    // data class を比較しているので，今回は中身が同じであるかは以下のようにして判定することができる
     override fun areContentsTheSame(
         oldDetailItem: DetailItem,
         newDetailItem: DetailItem
     ): Boolean {
 
-        return oldDetailItem== newDetailItem
+        return oldDetailItem == newDetailItem
     }
 
 }
 
+//表示するデータの型DetailItem，次に, ViewHolderの型を指定する
 class CustomAdapter(
     private val itemClickListener: OnItemClickListener,
-) : ListAdapter<DetailItem, CustomAdapter.ViewHolder>(diff_util){
+) : ListAdapter<DetailItem, CustomAdapter.ViewHolder>(Diff_UTIL_ITEM_CALLBACK){
 
+    //bind fun で、Viewと受け取ったObjectを結び付ける
     class ViewHolder(view: View): RecyclerView.ViewHolder(view)
 
     interface OnItemClickListener {
@@ -111,6 +116,7 @@ class CustomAdapter(
 
     	val item= getItem(position)
 
+        //ここで強制キャストが行われてるのか
         (holder.itemView.findViewById<View>(R.id.repositoryNameView) as TextView).text=
             item.name
 
