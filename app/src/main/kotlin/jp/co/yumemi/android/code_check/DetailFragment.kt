@@ -3,15 +3,17 @@
  */
 package jp.co.yumemi.android.code_check
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.databinding.DataBindingUtil.bind
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.navArgs
 import coil.load
-import jp.co.yumemi.android.code_check.TopActivity.Companion.lastSearchDate
 import jp.co.yumemi.android.code_check.databinding.FragmentDetailBinding
+import java.time.LocalDate
 
 class DetailFragment : Fragment(R.layout.fragment_detail) {
 
@@ -21,10 +23,13 @@ class DetailFragment : Fragment(R.layout.fragment_detail) {
     private var binding: FragmentDetailBinding? = null
     private val _binding get() = binding!!
 
+    // MainActivity から、lateinit を削除後，呼び出された時刻を表示する．
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Log.d("検索した日時", lastSearchDate.toString())
+        // ここに対しての，lateinit を削除した．
+        Log.d("検索した日時", LocalDate.now().toString())
 
         binding = FragmentDetailBinding.bind(view)
 

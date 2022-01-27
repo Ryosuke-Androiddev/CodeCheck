@@ -7,22 +7,11 @@ import android.content.Context
 import android.os.Parcelable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import jp.co.yumemi.android.code_check.TopActivity.Companion.lastSearchDate
 import jp.co.yumemi.android.code_check.api.RetrofitInstance
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.parcelize.Parcelize
-import org.json.JSONObject
-import java.util.*
 
-/**
- * TwoFragment で使う
- */
-class SearchViewModel(
-    val context: Context
-) : ViewModel() {
+class SearchViewModel() : ViewModel() {
 
     // 検索をするための処理 Ktor Client → Retrofit
     private fun searchRepository(query: String) = viewModelScope.launch {

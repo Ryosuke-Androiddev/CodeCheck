@@ -16,16 +16,18 @@ import jp.co.yumemi.android.code_check.databinding.FragmentSearchBinding
 
 class SearchFragment: Fragment(R.layout.fragment_search){
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?)
-    {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
         super.onViewCreated(view, savedInstanceState)
 
         val binding= FragmentSearchBinding.bind(view)
 
-        val viewModel= SearchViewModel(context!!)
+        val viewModel= SearchViewModel()
 
         val layoutManager= LinearLayoutManager(context!!)
 
+
+        // RecyclerView における境界線
         val dividerItemDecoration=
             DividerItemDecoration(context!!, layoutManager.orientation)
 
