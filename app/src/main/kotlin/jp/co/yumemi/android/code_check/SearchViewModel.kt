@@ -6,9 +6,12 @@ package jp.co.yumemi.android.code_check
 import android.content.Context
 import android.os.Parcelable
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import jp.co.yumemi.android.code_check.TopActivity.Companion.lastSearchDate
+import jp.co.yumemi.android.code_check.api.RetrofitInstance
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
@@ -21,53 +24,12 @@ class SearchViewModel(
     val context: Context
 ) : ViewModel() {
 
-    // 検索結果 - ライブラリの削除に伴いコメントアウト
-//   fun searchResults(inputText: String): List<item> = runBlocking {
-//        val client = HttpClient(Android)
-//
-//        return@runBlocking GlobalScope.async {
-//            val response: HttpResponse = client?.get("https://api.github.com/search/repositories") {
-//                header("Accept", "application/vnd.github.v3+json")
-//                parameter("q", inputText)
-//            }
-//
-//            val jsonBody = JSONObject(response.receive<String>())
-//
-//            val jsonItems = jsonBody.optJSONArray("items")!!
-//
-//            val items = mutableListOf<item>()
-//
-//            /**
-//             * アイテムの個数分ループする
-//             */
-//            for (i in 0 until jsonItems.length()) {
-//                val jsonItem = jsonItems.optJSONObject(i)!!
-//                val name = jsonItem.optString("full_name")
-//                val ownerIconUrl = jsonItem.optJSONObject("owner")!!.optString("avatar_url")
-//                val language = jsonItem.optString("language")
-//                val stargazersCount = jsonItem.optLong("stargazers_count")
-//                val watchersCount = jsonItem.optLong("watchers_count")
-//                val forksCount = jsonItem.optLong("forks_conut")
-//                val openIssuesCount = jsonItem.optLong("open_issues_count")
-//
-//                items.add(
-//                    item(
-//                        name = name,
-//                        ownerIconUrl = ownerIconUrl,
-//                        language = context.getString(R.string.written_language, language),
-//                        stargazersCount = stargazersCount,
-//                        watchersCount = watchersCount,
-//                        forksCount = forksCount,
-//                        openIssuesCount = openIssuesCount
-//                    )
-//                )
-//            }
-//
-//            lastSearchDate = Date()
-//
-//            return@async items.toList()
-//        }.await()
-//    }
+    // 検索をするための処理 Ktor Client → Retrofit
+    private fun searchRepository(query: String) = viewModelScope.launch {
+
+        // TODO 取得したデータを与える必要がある
+        val searchResult = RetrofitInstance.githubApi.searchRepository(query)
+    }
 }
 
 @Parcelize
