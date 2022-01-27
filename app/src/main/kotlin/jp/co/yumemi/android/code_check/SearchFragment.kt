@@ -30,9 +30,11 @@ class SearchFragment: Fragment(R.layout.fragment_search){
             DividerItemDecoration(context!!, layoutManager.orientation)
 
         val adapter= CustomAdapter(object : CustomAdapter.OnItemClickListener{
-            override fun itemClick(DetailItem: DetailItem){
-                gotoRepositoryFragment(DetailItem)
-            }
+
+            // TODO this viewModel fun is comment out now
+//            override fun itemClick(DetailItem: DetailItem){
+//                navigateToDetailWithArgs(DetailItem)
+//            }
         })
 
         binding.searchInputText
@@ -56,24 +58,30 @@ class SearchFragment: Fragment(R.layout.fragment_search){
         }
     }
 
-    fun gotoRepositoryFragment(DetailItem: DetailItem)
-    {
-        val action= SearchFragmentDirections
-            .actionRepositoriesFragmentToRepositoryFragment(item= DetailItem)
-
-        // Navigate to DetailFragment with SafeArgs
-        findNavController().navigate(action)
-    }
+    // TODO this viewModel fun is comment out now
+//    fun navigateToDetailWithArgs(DetailItem: DetailItem) {
+//
+//        val action= SearchFragmentDirections
+//            .actionRepositoriesFragmentToRepositoryFragment(item= DetailItem)
+//
+//        // Navigate to DetailFragment with SafeArgs
+//        findNavController().navigate(action)
+//    }
 }
 
 val diff_util= object: DiffUtil.ItemCallback<DetailItem>(){
-    override fun areItemsTheSame(oldDetailItem: DetailItem, newDetailItem: DetailItem): Boolean
-    {
+    override fun areItemsTheSame(
+        oldDetailItem: DetailItem,
+        newDetailItem: DetailItem
+    ): Boolean {
         return oldDetailItem.name== newDetailItem.name
     }
 
-    override fun areContentsTheSame(oldDetailItem: DetailItem, newDetailItem: DetailItem): Boolean
-    {
+    override fun areContentsTheSame(
+        oldDetailItem: DetailItem,
+        newDetailItem: DetailItem
+    ): Boolean {
+
         return oldDetailItem== newDetailItem
     }
 
@@ -85,20 +93,22 @@ class CustomAdapter(
 
     class ViewHolder(view: View): RecyclerView.ViewHolder(view)
 
-    interface OnItemClickListener{
+    interface OnItemClickListener {
     	fun itemClick(DetailItem: DetailItem)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder
-    {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+
     	val view= LayoutInflater.from(parent.context)
             .inflate(R.layout.layout_item, parent, false)
+
     	return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int)
-    {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+
     	val item= getItem(position)
+
         (holder.itemView.findViewById<View>(R.id.repositoryNameView) as TextView).text=
             item.name
 
