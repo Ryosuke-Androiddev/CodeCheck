@@ -95,36 +95,36 @@ val Diff_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>(){
 //表示するデータの型DetailItem，次に, ViewHolderの型を指定する
 class ItemListAdapter(
     private val itemClickListener: OnItemClickListener,
-) : ListAdapter<DetailItem, ItemListAdapter.ViewHolder>(Diff_UTIL_ITEM_CALLBACK){
+) : ListAdapter<DetailItem, ItemListAdapter.DetailItemViewHolder>(Diff_UTIL_ITEM_CALLBACK){
 
     //bind fun で、Viewと受け取ったObjectを結び付ける
-    class ViewHolder(view: View): RecyclerView.ViewHolder(view)
+    class DetailItemViewHolder(view: View): RecyclerView.ViewHolder(view)
 
     interface OnItemClickListener {
     	fun itemClick(DetailItem: DetailItem)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DetailItemViewHolder {
 
         // 生成されたBinding Classを使えば、fromが必要なくなる?　そもそも、fromの意味とは?
     	val view= LayoutInflater.from(parent.context)
             .inflate(R.layout.layout_item, parent, false)
 
-    	return ViewHolder(view)
+    	return DetailItemViewHolder(view)
     }
 
     // 生成されたBinding Classを引数で渡す。
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holderDetailItem: DetailItemViewHolder, position: Int) {
 
         //holder.bind(getItem(position))
     	val item= getItem(position)
 
         //ここで強制キャストが行われてるのか この処理は、フルネームを表示するためのものである。
-        (holder.itemView.findViewById<View>(R.id.repositoryNameView) as TextView).text=
+        (holderDetailItem.itemView.findViewById<View>(R.id.repositoryNameView) as TextView).text=
             item.name
 
         // click されたときに、何を渡すのかを決める必要がある
-    	holder.itemView.setOnClickListener{
+    	holderDetailItem.itemView.setOnClickListener{
      		itemClickListener.itemClick(item)
     	}
     }
