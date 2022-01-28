@@ -40,7 +40,7 @@ class SearchViewModel(
 data class DetailItem(
     val fullName: String,
     val avatarUrl: String,
-    val language: String,
+    val language: String?,
     val stargazersCount: Long,
     val watchersCount: Long,
     val forksCount: Long,

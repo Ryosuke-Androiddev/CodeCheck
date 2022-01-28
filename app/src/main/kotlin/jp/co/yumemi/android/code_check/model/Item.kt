@@ -10,7 +10,7 @@ data class Item(
     @SerializedName("owner")
     val owner: Owner,
     @SerializedName("language")
-    val language: String,
+    val language: String?,
     @SerializedName("stargazers_count")
     val stargazersCount: Int,
     @SerializedName("watchers_count")

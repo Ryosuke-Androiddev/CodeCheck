@@ -17,6 +17,9 @@ import androidx.recyclerview.widget.*
 import jp.co.yumemi.android.code_check.api.RetrofitInstance
 import jp.co.yumemi.android.code_check.databinding.FragmentSearchBinding
 import jp.co.yumemi.android.code_check.databinding.LayoutItemBinding
+import jp.co.yumemi.android.code_check.model.ApiResult
+import jp.co.yumemi.android.code_check.model.Item
+import jp.co.yumemi.android.code_check.model.Owner
 import jp.co.yumemi.android.code_check.repository.SearchRepository
 import jp.co.yumemi.android.code_check.util.Result
 import jp.co.yumemi.android.code_check.viewmodel.SearchViewModelFactory
@@ -43,7 +46,6 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
 
         val layoutManager= LinearLayoutManager(requireContext())
 
-
         // RecyclerView における境界線
         val dividerItemDecoration=
             DividerItemDecoration(requireContext(), layoutManager.orientation)
@@ -57,8 +59,6 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
             }
         })
 
-        viewModel.searchRepository("Kotlin")
-
         // Input に対する入力を、Enterキーを使って検知している
         binding.searchInputText
             .setOnEditorActionListener { editText, action, _ ->
@@ -70,12 +70,13 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                     editText.text?.toString()?.let { searchQuery ->
                         if (searchQuery.isNotEmpty()) {
 
+                            callViewModelFun(viewModel, searchQuery)
                             //viewModel.searchRepository(searchQuery)
 
                             // 検索結果に応じて、collectする
                             lifecycleScope.launchWhenCreated {
 
-                                RetrofitInstance.githubApi.searchGithubRepository(searchQuery)
+                                //RetrofitInstance.githubApi.searchGithubRepository(searchQuery)
                                 Log.d("Query", searchQuery)
 
                                 viewModel.searchResult.collect { result ->
@@ -84,12 +85,15 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
 
                                         is Result.Success -> {
                                             adapter.submitList(result.data)
+                                            Log.d("Result Success", "${viewModel.searchResult.value}")
                                         }
                                         is Result.Error -> {
                                             // TODO When error occurred
+                                            Log.d("Result Error", result.message)
+                                            Log.d("Result Error", "${viewModel.searchResult.value}")
                                         }
                                         is Result.Idle -> {
-                                            // TODO Nothing
+                                            Log.d("Result Idle", "${viewModel.searchResult.value}")
                                         }
                                     }
                                 }
@@ -101,16 +105,23 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                 return@setOnEditorActionListener false
             }
 
-//        binding.recyclerView.also{
-//            it.layoutManager= layoutManager
-//            it.addItemDecoration(dividerItemDecoration)
-//            it.adapter= adapter
-//        }
+        binding.recyclerView.also{
+            it.layoutManager= layoutManager
+            it.addItemDecoration(dividerItemDecoration)
+            it.adapter= adapter
+        }
 
         // TODO 上記の RecyclerView の生成方法を別の  Fun で呼び出したい
-        binding.recyclerView.adapter = adapter
-        binding.recyclerView.layoutManager = layoutManager
-        binding.recyclerView.addItemDecoration(dividerItemDecoration)
+//        binding.recyclerView.adapter = adapter
+//        binding.recyclerView.layoutManager = layoutManager
+//        binding.recyclerView.addItemDecoration(dividerItemDecoration)
+    }
+
+    fun callViewModelFun(viewModel: SearchViewModel, q: String){
+
+        viewModel.searchRepository(q)
+        val list = viewModel.searchResult.value
+        Log.d("viewmodel fun", "called ViewModel Fun")
     }
 
     // TODO this viewModel fun is comment out now
