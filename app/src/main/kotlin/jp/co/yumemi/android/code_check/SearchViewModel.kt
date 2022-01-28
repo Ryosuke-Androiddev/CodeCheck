@@ -4,6 +4,7 @@
 package jp.co.yumemi.android.code_check
 
 import android.os.Parcelable
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.yumemi.android.code_check.repository.SearchRepository
@@ -25,6 +26,7 @@ class SearchViewModel(
     // Avoid using GlobalScope
     fun searchRepository(query: String) = viewModelScope.launch {
 
+        Log.d("API Call", "called API")
         searchRepository.searchGithubRepository(query)
             .catch { e ->
                 _searchResult.value = Result.Error(e.toString())
@@ -36,8 +38,8 @@ class SearchViewModel(
 
 @Parcelize
 data class DetailItem(
-    val name: String,
-    val ownerIconUrl: String,
+    val fullName: String,
+    val avatarUrl: String,
     val language: String,
     val stargazersCount: Long,
     val watchersCount: Long,

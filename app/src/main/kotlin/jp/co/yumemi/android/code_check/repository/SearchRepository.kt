@@ -1,5 +1,6 @@
 package jp.co.yumemi.android.code_check.repository
 
+import android.util.Log
 import jp.co.yumemi.android.code_check.DetailItem
 import jp.co.yumemi.android.code_check.api.RetrofitInstance
 import jp.co.yumemi.android.code_check.util.Result
@@ -17,6 +18,8 @@ class SearchRepository {
         // List<DetailItem>>形式に変換
         val detailItemList = RetrofitInstance.githubApi.searchGithubRepository(query).toDetailItemList()
         emit(detailItemList)
+
+        Log.d("API Call", "called API")
 
     }.flowOn(Dispatchers.IO)
 }

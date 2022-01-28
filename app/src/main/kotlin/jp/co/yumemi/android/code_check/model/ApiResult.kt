@@ -1,6 +1,7 @@
 package jp.co.yumemi.android.code_check.model
 
 
+import android.util.Log
 import com.google.gson.annotations.SerializedName
 import jp.co.yumemi.android.code_check.DetailItem
 
@@ -18,8 +19,8 @@ data class ApiResult(
 
             emptyList.add(
                 DetailItem(
-                    name = item.fullName,
-                    ownerIconUrl = item.owner.avatarUrl,
+                    fullName = item.fullName,
+                    avatarUrl = item.owner.avatarUrl,
                     language = item.language,
                     stargazersCount = item.stargazersCount.toLong(),
                     watchersCount = item.watchersCount.toLong(),
@@ -29,6 +30,7 @@ data class ApiResult(
             )
         }
 
+        Log.d("object change", "called object change")
         return detailItemList
     }
 }
