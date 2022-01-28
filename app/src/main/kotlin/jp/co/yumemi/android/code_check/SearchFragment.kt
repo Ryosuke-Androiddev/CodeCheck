@@ -29,7 +29,7 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         val binding= FragmentSearchBinding.bind(view)
 
         // ViewModel の生成方法に違和感あり 作るタイミングがあるはず
-        val viewModel= SearchViewModel()
+        //val viewModel= SearchViewModel()
 
         val layoutManager= LinearLayoutManager(requireContext())
 
@@ -56,8 +56,8 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
 
                     // null check 後に、空文字のチェックを通過後に、searchRepository を呼び出す
                     editText.text?.toString()?.let { searchQuery ->
-                        if (searchQuery.toString().isNotEmpty()) {
-                            viewModel.searchRepository(searchQuery)
+                        if (searchQuery.isNotEmpty()) {
+                            //viewModel.searchRepository(searchQuery)
                         }
                     }
                     return@setOnEditorActionListener true

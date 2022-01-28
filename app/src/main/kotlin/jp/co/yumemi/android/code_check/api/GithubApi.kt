@@ -13,5 +13,5 @@ interface GithubApi {
         "Accept: application/vnd.github.v3+json"
     )
     @GET
-    suspend fun searchRepository(@Query("q") query: String): ApiResult
+    suspend fun searchGithubRepository(@Query("q") query: String): ApiResult
 }
