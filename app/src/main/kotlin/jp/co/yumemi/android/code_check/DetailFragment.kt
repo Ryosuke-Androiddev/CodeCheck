@@ -31,6 +31,7 @@ class DetailFragment : Fragment(R.layout.fragment_detail) {
         // ここに対しての，lateinit を削除した．
         Log.d("検索した日時", LocalDate.now().toString())
 
+        // Viewの生成方法に違和感あり
         binding = FragmentDetailBinding.bind(view)
 
         // this is navigated item

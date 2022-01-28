@@ -17,12 +17,18 @@ import jp.co.yumemi.android.code_check.databinding.LayoutItemBinding
 
 class SearchFragment: Fragment(R.layout.fragment_search) {
 
+    private lateinit var adapter: ItemListAdapter
+
+    // onCreatedView() の戻り値である View の初期化を行う → Data Binding を使わない
+    // 引数で与えたレイアウトをinflateされて、戻り値となる
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         super.onViewCreated(view, savedInstanceState)
 
+        // inflate されたViewをどこで取得する
         val binding= FragmentSearchBinding.bind(view)
 
+        // ViewModel の生成方法に違和感あり 作るタイミングがあるはず
         val viewModel= SearchViewModel()
 
         val layoutManager= LinearLayoutManager(requireContext())
@@ -32,22 +38,27 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         val dividerItemDecoration=
             DividerItemDecoration(requireContext(), layoutManager.orientation)
 
-        val adapter= ItemListAdapter(object : ItemListAdapter.OnItemClickListener {
+        // TODO adapter を lateinit で置き換える
+//        val adapter= ItemListAdapter(object : ItemListAdapter.OnItemClickListener {
+//
+//            // TODO this viewModel fun is comment out now
+////            override fun itemClick(DetailItem: DetailItem){
+////                navigateToDetailWithArgs(DetailItem)
+////            }
+//        })
 
-            // TODO this viewModel fun is comment out now
-//            override fun itemClick(DetailItem: DetailItem){
-//                navigateToDetailWithArgs(DetailItem)
-//            }
-        })
-
+        // Input に対する入力を、Enterキーを使って検知している
         binding.searchInputText
             .setOnEditorActionListener { editText, action, _ ->
+
+                // 入力した editText を，検索したい文字列として受け取ることがわかる
                 if (action == EditorInfo.IME_ACTION_SEARCH) {
-                    editText.text.toString().let {
-                        // TODO this viewModel fun is comment out now
-//                        viewModel.searchRepository(it).apply{
-//                            adapter.submitList(this)
-//                        }
+
+                    // null check 後に、空文字のチェックを通過後に、searchRepository を呼び出す
+                    editText.text?.toString()?.let { searchQuery ->
+                        if (searchQuery.toString().isNotEmpty()) {
+                            viewModel.searchRepository(searchQuery)
+                        }
                     }
                     return@setOnEditorActionListener true
                 }
@@ -59,17 +70,22 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
             it.addItemDecoration(dividerItemDecoration)
             it.adapter= adapter
         }
+
+        // TODO 上記の RecyclerView の生成方法を別の  Fun で呼び出したい
+//        binding.recyclerView.adapter = adapter
+//        binding.recyclerView.layoutManager = layoutManager
+//        binding.recyclerView.addItemDecoration(dividerItemDecoration)
     }
 
     // TODO this viewModel fun is comment out now
-    fun navigateToDetailWithArgs(detailItem: DetailItem) {
-
-        val action= SearchFragmentDirections
-            .actionSearchFragmentToDetailFragment(detailItem)
-
-        // Navigate to DetailFragment with SafeArgs
-        findNavController().navigate(action)
-    }
+//    fun navigateToDetailWithArgs(detailItem: DetailItem) {
+//
+//        val action= SearchFragmentDirections
+//            .actionSearchFragmentToDetailFragment(detailItem)
+//
+//        // Navigate to DetailFragment with SafeArgs
+//        findNavController().navigate(action)
+//    }
 }
 
 // 作成したDiffUtilは，ViewHolderの中で呼び出しを行う
@@ -80,6 +96,7 @@ val Diff_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
         oldDetailItem: DetailItem,
         newDetailItem: DetailItem
     ): Boolean {
+
         return oldDetailItem.name == newDetailItem.name
     }
 
@@ -132,6 +149,8 @@ class DetailItemViewHolder(
         binding.repositoryNameView.text = detailItem.name
 
         binding.repositoryNameView.setOnClickListener {
+
+            //ここで, Navigationの呼び出しを行う try-catchで
             itemClickListener.itemClick(detailItem)
         }
     }

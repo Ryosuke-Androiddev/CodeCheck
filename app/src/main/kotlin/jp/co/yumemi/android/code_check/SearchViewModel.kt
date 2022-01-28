@@ -14,7 +14,7 @@ import kotlinx.parcelize.Parcelize
 class SearchViewModel() : ViewModel() {
 
     // 検索をするための処理 Ktor Client → Retrofit
-    private fun searchRepository(query: String) = viewModelScope.launch {
+    fun searchRepository(query: String) = viewModelScope.launch {
 
         // TODO 取得したデータを与える必要がある
         val searchResult = RetrofitInstance.githubApi.searchRepository(query)
