@@ -22,7 +22,7 @@ class SearchViewModel(
     private val _searchResult: MutableStateFlow<Result> = MutableStateFlow(Result.Idle)
     val searchResult: StateFlow<Result> = _searchResult
 
-    // 検索をするための処理 Ktor Client → Retrofit
+    // Avoid using GlobalScope
     fun searchRepository(query: String) = viewModelScope.launch {
 
         searchRepository.searchGithubRepository(query)

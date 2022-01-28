@@ -8,12 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.*
 import jp.co.yumemi.android.code_check.databinding.FragmentSearchBinding
 import jp.co.yumemi.android.code_check.databinding.LayoutItemBinding
+import jp.co.yumemi.android.code_check.repository.SearchRepository
+import jp.co.yumemi.android.code_check.viewmodel.SearchViewModelFactory
 
 class SearchFragment: Fragment(R.layout.fragment_search) {
 
@@ -28,7 +29,10 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         // inflate されたViewをどこで取得する
         val binding= FragmentSearchBinding.bind(view)
 
-        // ViewModel の生成方法に違和感あり 作るタイミングがあるはず
+        // ViewModel Factory を用いた ViewModelの生成
+        val repository = SearchRepository()
+        val searchViewModelFactory = SearchViewModelFactory(repository)
+        val viewModel = ViewModelProvider(this, searchViewModelFactory).get(SearchViewModel::class.java)
         //val viewModel= SearchViewModel()
 
         val layoutManager= LinearLayoutManager(requireContext())
@@ -57,7 +61,7 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                     // null check 後に、空文字のチェックを通過後に、searchRepository を呼び出す
                     editText.text?.toString()?.let { searchQuery ->
                         if (searchQuery.isNotEmpty()) {
-                            //viewModel.searchRepository(searchQuery)
+                            viewModel.searchRepository(searchQuery)
                         }
                     }
                     return@setOnEditorActionListener true
@@ -65,16 +69,16 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                 return@setOnEditorActionListener false
             }
 
-        binding.recyclerView.also{
-            it.layoutManager= layoutManager
-            it.addItemDecoration(dividerItemDecoration)
-            it.adapter= adapter
-        }
+//        binding.recyclerView.also{
+//            it.layoutManager= layoutManager
+//            it.addItemDecoration(dividerItemDecoration)
+//            it.adapter= adapter
+//        }
 
         // TODO 上記の RecyclerView の生成方法を別の  Fun で呼び出したい
-//        binding.recyclerView.adapter = adapter
-//        binding.recyclerView.layoutManager = layoutManager
-//        binding.recyclerView.addItemDecoration(dividerItemDecoration)
+        binding.recyclerView.adapter = adapter
+        binding.recyclerView.layoutManager = layoutManager
+        binding.recyclerView.addItemDecoration(dividerItemDecoration)
     }
 
     // TODO this viewModel fun is comment out now
@@ -89,7 +93,7 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
 }
 
 // 作成したDiffUtilは，ViewHolderの中で呼び出しを行う
-val Diff_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
+val DIFF_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
 
     // オブジェクト特有の値を用いて，比較を行う．今回は，それぞれのオブジェクトの名前の比較を行う
     override fun areItemsTheSame(
@@ -114,7 +118,7 @@ val Diff_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
 //表示するデータの型DetailItem，次に, ViewHolderの型を指定する
 class ItemListAdapter(
     private val itemClickListener: OnItemClickListener,
-) : ListAdapter<DetailItem, DetailItemViewHolder>(Diff_UTIL_ITEM_CALLBACK) {
+) : ListAdapter<DetailItem, DetailItemViewHolder>(DIFF_UTIL_ITEM_CALLBACK) {
 
     interface OnItemClickListener {
     	fun itemClick(DetailItem: DetailItem)
