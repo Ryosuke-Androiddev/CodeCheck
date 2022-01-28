@@ -3,6 +3,7 @@
  */
 package jp.co.yumemi.android.code_check
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -24,6 +25,7 @@ class DetailFragment : Fragment(R.layout.fragment_detail) {
     private val _binding get() = binding!!
 
     // MainActivity から、lateinit を削除後，呼び出された時刻を表示する．
+    @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -35,7 +37,7 @@ class DetailFragment : Fragment(R.layout.fragment_detail) {
         binding = FragmentDetailBinding.bind(view)
 
         // this is navigated item
-        var item = args.item
+        val item = args.item
 
         // set info into view using viewBinding
         _binding.ownerIconView.load(item.ownerIconUrl);
