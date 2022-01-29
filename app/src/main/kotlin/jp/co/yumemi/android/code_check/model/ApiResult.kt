@@ -18,17 +18,15 @@ data class ApiResult(
         items.forEach { item ->
 
             emptyList.add(
-                item.let {
-                    DetailItem(
-                        fullName = item.fullName,
-                        avatarUrl = item.owner.avatarUrl,
-                        language = item.language,
-                        stargazersCount = item.stargazersCount.toLong(),
-                        watchersCount = item.watchersCount.toLong(),
-                        forksCount = item.forksCount.toLong(),
-                        openIssuesCount = item.openIssuesCount.toLong()
-                    )
-                }
+                DetailItem(
+                    fullName = item.fullName,
+                    avatarUrl = item.owner.avatarUrl,
+                    language = item.language,
+                    stargazersCount = item.stargazersCount.toLong(),
+                    watchersCount = item.watchersCount.toLong(),
+                    forksCount = item.forksCount.toLong(),
+                    openIssuesCount = item.openIssuesCount.toLong()
+                )
             )
         }
 
