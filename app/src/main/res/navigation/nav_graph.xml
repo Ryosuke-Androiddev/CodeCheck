@@ -17,12 +17,12 @@
 
     <fragment
         android:id="@+id/detailFragment"
-        android:name="jp.co.yumemi.android.code_check.DetailFragment"
+        android:name="jp.co.yumemi.android.code_check.ui.fragments.DetailFragment"
         android:label="@string/app_name"
         tools:layout="@layout/fragment_detail">
         <argument
             android:name="item"
-            app:argType="jp.co.yumemi.android.code_check.DetailItem" />
+            app:argType="jp.co.yumemi.android.code_check.model.DetailItem" />
     </fragment>
 
 </navigation>
