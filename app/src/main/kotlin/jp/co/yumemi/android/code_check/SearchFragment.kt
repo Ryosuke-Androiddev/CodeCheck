@@ -12,14 +12,10 @@ import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.*
-import jp.co.yumemi.android.code_check.api.RetrofitInstance
 import jp.co.yumemi.android.code_check.databinding.FragmentSearchBinding
 import jp.co.yumemi.android.code_check.databinding.LayoutItemBinding
-import jp.co.yumemi.android.code_check.model.ApiResult
-import jp.co.yumemi.android.code_check.model.Item
-import jp.co.yumemi.android.code_check.model.Owner
 import jp.co.yumemi.android.code_check.repository.SearchRepository
 import jp.co.yumemi.android.code_check.util.Result
 import jp.co.yumemi.android.code_check.viewmodel.SearchViewModelFactory
@@ -40,7 +36,6 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         val repository = SearchRepository()
         val searchViewModelFactory = SearchViewModelFactory(repository)
         val viewModel = ViewModelProvider(this, searchViewModelFactory).get(SearchViewModel::class.java)
-        //val viewModel= SearchViewModel()
 
         Log.d("ViewModel", "$viewModel created")
 
@@ -50,14 +45,8 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         val dividerItemDecoration=
             DividerItemDecoration(requireContext(), layoutManager.orientation)
 
-        // TODO adapter を lateinit で置き換える
-        val adapter = ItemListAdapter(object : ItemListAdapter.OnItemClickListener {
-
-            // TODO this viewModel fun is comment out now
-            override fun itemClick(DetailItem: DetailItem){
-                navigateToDetailWithArgs(DetailItem)
-            }
-        })
+        // 引数をとらないように変更を加える
+        val adapter = ItemListAdapter()
 
         // Input に対する入力を、Enterキーを使って検知している
         binding.searchInputText
@@ -70,13 +59,11 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                     editText.text?.toString()?.let { searchQuery ->
                         if (searchQuery.isNotEmpty()) {
 
-                            callViewModelFun(viewModel, searchQuery)
-                            //viewModel.searchRepository(searchQuery)
+                            viewModel.searchGithubRepository(searchQuery)
 
                             // 検索結果に応じて、collectする
                             lifecycleScope.launchWhenCreated {
 
-                                //RetrofitInstance.githubApi.searchGithubRepository(searchQuery)
                                 Log.d("Query", searchQuery)
 
                                 viewModel.searchResult.collect { result ->
@@ -86,9 +73,9 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                                         is Result.Success -> {
                                             adapter.submitList(result.data)
                                             Log.d("Result Success", "${viewModel.searchResult.value}")
+                                            Log.d("Result Success", "${result.data}")
                                         }
                                         is Result.Error -> {
-                                            // TODO When error occurred
                                             Log.d("Result Error", result.message)
                                             Log.d("Result Error", "${viewModel.searchResult.value}")
                                         }
@@ -116,23 +103,6 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
 //        binding.recyclerView.layoutManager = layoutManager
 //        binding.recyclerView.addItemDecoration(dividerItemDecoration)
     }
-
-    fun callViewModelFun(viewModel: SearchViewModel, q: String){
-
-        viewModel.searchRepository(q)
-        val list = viewModel.searchResult.value
-        Log.d("viewmodel fun", "called ViewModel Fun")
-    }
-
-    // TODO this viewModel fun is comment out now
-    fun navigateToDetailWithArgs(detailItem: DetailItem) {
-
-        val action= SearchFragmentDirections
-            .actionSearchFragmentToDetailFragment(detailItem)
-
-        // Navigate to DetailFragment with SafeArgs
-        findNavController().navigate(action)
-    }
 }
 
 // 作成したDiffUtilは，ViewHolderの中で呼び出しを行う
@@ -159,17 +129,10 @@ val DIFF_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
 }
 
 //表示するデータの型DetailItem，次に, ViewHolderの型を指定する
-class ItemListAdapter(
-    private val itemClickListener: OnItemClickListener,
-) : ListAdapter<DetailItem, DetailItemViewHolder>(DIFF_UTIL_ITEM_CALLBACK) {
-
-    interface OnItemClickListener {
-    	fun itemClick(DetailItem: DetailItem)
-    }
+class ItemListAdapter : ListAdapter<DetailItem, DetailItemViewHolder>(DIFF_UTIL_ITEM_CALLBACK) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DetailItemViewHolder {
 
-        // 生成されたBinding Classを使えば、fromが必要なくなる?　そもそも、fromの意味とは?
     	val layoutInflater = LayoutInflater.from(parent.context)
         val binding = LayoutItemBinding.inflate(layoutInflater, parent, false)
 
@@ -179,7 +142,7 @@ class ItemListAdapter(
     // 生成されたBinding Classを引数で渡す。
     override fun onBindViewHolder(holderDetailItem: DetailItemViewHolder, position: Int) {
 
-        holderDetailItem.bind(getItem(position), itemClickListener)
+        holderDetailItem.bind(getItem(position))
     }
 }
 
@@ -191,14 +154,22 @@ class DetailItemViewHolder(
     // Objectを渡して、このメソッドでバインドする
     fun bind(
         detailItem: DetailItem,
-        itemClickListener: ItemListAdapter.OnItemClickListener
     ) {
         binding.repositoryNameView.text = detailItem.fullName
 
         binding.repositoryNameView.setOnClickListener {
 
-            //ここで, Navigationの呼び出しを行う try-catchで
-            itemClickListener.itemClick(detailItem)
+            // 遷移時に、try-catchを追加
+            try {
+
+                val action= SearchFragmentDirections
+                    .actionSearchFragmentToDetailFragment(detailItem)
+
+                binding.repositoryNameView.findNavController().navigate(action)
+
+            } catch (e: Exception) {
+                Log.d("onItemClickListener", e.toString())
+            }
         }
     }
 }

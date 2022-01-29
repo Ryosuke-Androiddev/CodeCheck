@@ -24,7 +24,8 @@ class SearchViewModel(
     val searchResult: StateFlow<Result> = _searchResult
 
     // Avoid using GlobalScope
-    fun searchRepository(query: String) = viewModelScope.launch {
+    // Flow の例外キャッチを、catch を用いて行う
+    fun searchGithubRepository(query: String) = viewModelScope.launch {
 
         Log.d("API Call", "called API")
         searchRepository.searchGithubRepository(query)
