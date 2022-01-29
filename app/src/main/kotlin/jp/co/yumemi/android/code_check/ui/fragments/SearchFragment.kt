@@ -9,6 +9,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.*
 import jp.co.yumemi.android.code_check.adapter.ItemListAdapter
@@ -17,6 +18,10 @@ import jp.co.yumemi.android.code_check.repository.SearchRepository
 import jp.co.yumemi.android.code_check.util.Result
 import jp.co.yumemi.android.code_check.viewmodel.SearchViewModelFactory
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 class SearchFragment: Fragment(R.layout.fragment_search) {
 
@@ -29,10 +34,9 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         // inflate されたViewをどこで取得する
         val binding = FragmentSearchBinding.bind(view)
 
-        // ViewModel Factory を用いた ViewModelの生成
         val repository = SearchRepository()
-        val searchViewModelFactory = SearchViewModelFactory(repository)
-        val viewModel = ViewModelProvider(this, searchViewModelFactory).get(SearchViewModel::class.java)
+        val viewModelProviderFactory = SearchViewModelFactory(repository)
+        val viewModel = ViewModelProvider(this, viewModelProviderFactory)[SearchViewModel::class.java]
 
         Log.d("ViewModel", "$viewModel created")
 
@@ -56,19 +60,41 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                     editText.text?.toString()?.let { searchQuery ->
                         if (searchQuery.isNotEmpty()) {
 
-                            viewModel.searchGithubRepository(searchQuery)
+//                            viewModel.searchResult.onEach {
+//
+//                                viewModel.searchResult.collect { result ->
+//
+//                                    when(result){
+//
+//                                        is Result.Success -> {
+//                                            adapter.submitList(result.data)
+//                                            Log.d("Result Success", "${viewModel.searchResult.value}")
+//                                            Log.d("Result Success", "${result.data}")
+//                                        }
+//                                        is Result.Error -> {
+//                                            Log.d("Result Error", result.message)
+//                                            Log.d("Result Error", "${viewModel.searchResult.value}")
+//                                        }
+//                                        is Result.Idle -> {
+//                                            Log.d("Result Idle", "${viewModel.searchResult.value}")
+//                                        }
+//                                        is Result.Loading -> {
+//                                            Log.d("Result Loading", "Loading State")
+//                                        }
+//                                    }
+//                                }
+//                            }.launchIn(viewLifecycleOwner.lifecycleScope)
+                                viewModel.searchGithubRepository(searchQuery)
 
-                            // 検索結果に応じて、collectする
-                            lifecycleScope.launchWhenCreated {
+                                viewLifecycleOwner.lifecycleScope.launchWhenCreated {
 
-                                Log.d("Query", searchQuery)
-
-                                viewModel.searchResult.collect { result ->
+                                viewModel.searchResult.flowWithLifecycle(lifecycle).collectLatest { result ->
 
                                     when(result){
 
                                         is Result.Success -> {
                                             adapter.submitList(result.data)
+
                                             Log.d("Result Success", "${viewModel.searchResult.value}")
                                             Log.d("Result Success", "${result.data}")
                                         }
@@ -79,9 +105,13 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                                         is Result.Idle -> {
                                             Log.d("Result Idle", "${viewModel.searchResult.value}")
                                         }
+                                        is Result.Loading -> {
+                                            Log.d("Result Loading", "Loading State")
+                                        }
                                     }
                                 }
                             }
+
                         }
                     }
                     return@setOnEditorActionListener true
