@@ -4,6 +4,7 @@
 package jp.co.yumemi.android.code_check
 
 import android.os.Parcelable
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.yumemi.android.code_check.repository.SearchRepository
@@ -22,9 +23,11 @@ class SearchViewModel(
     private val _searchResult: MutableStateFlow<Result> = MutableStateFlow(Result.Idle)
     val searchResult: StateFlow<Result> = _searchResult
 
-    // 検索をするための処理 Ktor Client → Retrofit
-    fun searchRepository(query: String) = viewModelScope.launch {
+    // Avoid using GlobalScope
+    // Flow の例外キャッチを、catch を用いて行う
+    fun searchGithubRepository(query: String) = viewModelScope.launch {
 
+        Log.d("API Call", "called API")
         searchRepository.searchGithubRepository(query)
             .catch { e ->
                 _searchResult.value = Result.Error(e.toString())
@@ -36,9 +39,9 @@ class SearchViewModel(
 
 @Parcelize
 data class DetailItem(
-    val name: String,
-    val ownerIconUrl: String,
-    val language: String,
+    val fullName: String,
+    val avatarUrl: String,
+    val language: String?,
     val stargazersCount: Long,
     val watchersCount: Long,
     val forksCount: Long,

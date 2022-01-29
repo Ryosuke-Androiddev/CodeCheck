@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.annotation.RequiresApi
-import androidx.databinding.DataBindingUtil.bind
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.navArgs
 import coil.load
@@ -40,8 +39,8 @@ class DetailFragment : Fragment(R.layout.fragment_detail) {
         val item = args.item
 
         // set info into view using viewBinding
-        _binding.ownerIconView.load(item.ownerIconUrl);
-        _binding.nameView.text = item.name;
+        _binding.ownerIconView.load(item.avatarUrl);
+        _binding.nameView.text = item.fullName;
         _binding.languageView.text = item.language;
         _binding.starsView.text = "${item.stargazersCount} stars";
         _binding.watchersView.text = "${item.watchersCount} watchers";

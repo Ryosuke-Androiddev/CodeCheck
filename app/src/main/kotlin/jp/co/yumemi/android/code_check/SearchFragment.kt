@@ -4,20 +4,24 @@
 package jp.co.yumemi.android.code_check
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.*
 import jp.co.yumemi.android.code_check.databinding.FragmentSearchBinding
 import jp.co.yumemi.android.code_check.databinding.LayoutItemBinding
+import jp.co.yumemi.android.code_check.repository.SearchRepository
+import jp.co.yumemi.android.code_check.util.Result
+import jp.co.yumemi.android.code_check.viewmodel.SearchViewModelFactory
+import kotlinx.coroutines.flow.collect
 
 class SearchFragment: Fragment(R.layout.fragment_search) {
-
-    private lateinit var adapter: ItemListAdapter
 
     // onCreatedView() の戻り値である View の初期化を行う → Data Binding を使わない
     // 引数で与えたレイアウトをinflateされて、戻り値となる
@@ -28,24 +32,21 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         // inflate されたViewをどこで取得する
         val binding= FragmentSearchBinding.bind(view)
 
-        // ViewModel の生成方法に違和感あり 作るタイミングがあるはず
-        //val viewModel= SearchViewModel()
+        // ViewModel Factory を用いた ViewModelの生成
+        val repository = SearchRepository()
+        val searchViewModelFactory = SearchViewModelFactory(repository)
+        val viewModel = ViewModelProvider(this, searchViewModelFactory).get(SearchViewModel::class.java)
+
+        Log.d("ViewModel", "$viewModel created")
 
         val layoutManager= LinearLayoutManager(requireContext())
-
 
         // RecyclerView における境界線
         val dividerItemDecoration=
             DividerItemDecoration(requireContext(), layoutManager.orientation)
 
-        // TODO adapter を lateinit で置き換える
-//        val adapter= ItemListAdapter(object : ItemListAdapter.OnItemClickListener {
-//
-//            // TODO this viewModel fun is comment out now
-////            override fun itemClick(DetailItem: DetailItem){
-////                navigateToDetailWithArgs(DetailItem)
-////            }
-//        })
+        // 引数をとらないように変更を加える
+        val adapter = ItemListAdapter()
 
         // Input に対する入力を、Enterキーを使って検知している
         binding.searchInputText
@@ -57,7 +58,33 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                     // null check 後に、空文字のチェックを通過後に、searchRepository を呼び出す
                     editText.text?.toString()?.let { searchQuery ->
                         if (searchQuery.isNotEmpty()) {
-                            //viewModel.searchRepository(searchQuery)
+
+                            viewModel.searchGithubRepository(searchQuery)
+
+                            // 検索結果に応じて、collectする
+                            lifecycleScope.launchWhenCreated {
+
+                                Log.d("Query", searchQuery)
+
+                                viewModel.searchResult.collect { result ->
+
+                                    when(result){
+
+                                        is Result.Success -> {
+                                            adapter.submitList(result.data)
+                                            Log.d("Result Success", "${viewModel.searchResult.value}")
+                                            Log.d("Result Success", "${result.data}")
+                                        }
+                                        is Result.Error -> {
+                                            Log.d("Result Error", result.message)
+                                            Log.d("Result Error", "${viewModel.searchResult.value}")
+                                        }
+                                        is Result.Idle -> {
+                                            Log.d("Result Idle", "${viewModel.searchResult.value}")
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                     return@setOnEditorActionListener true
@@ -76,20 +103,10 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
 //        binding.recyclerView.layoutManager = layoutManager
 //        binding.recyclerView.addItemDecoration(dividerItemDecoration)
     }
-
-    // TODO this viewModel fun is comment out now
-//    fun navigateToDetailWithArgs(detailItem: DetailItem) {
-//
-//        val action= SearchFragmentDirections
-//            .actionSearchFragmentToDetailFragment(detailItem)
-//
-//        // Navigate to DetailFragment with SafeArgs
-//        findNavController().navigate(action)
-//    }
 }
 
 // 作成したDiffUtilは，ViewHolderの中で呼び出しを行う
-val Diff_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
+val DIFF_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
 
     // オブジェクト特有の値を用いて，比較を行う．今回は，それぞれのオブジェクトの名前の比較を行う
     override fun areItemsTheSame(
@@ -97,7 +114,7 @@ val Diff_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
         newDetailItem: DetailItem
     ): Boolean {
 
-        return oldDetailItem.name == newDetailItem.name
+        return oldDetailItem.fullName == newDetailItem.fullName
     }
 
     // data class を比較しているので，今回は中身が同じであるかは以下のようにして判定することができる
@@ -112,17 +129,10 @@ val Diff_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
 }
 
 //表示するデータの型DetailItem，次に, ViewHolderの型を指定する
-class ItemListAdapter(
-    private val itemClickListener: OnItemClickListener,
-) : ListAdapter<DetailItem, DetailItemViewHolder>(Diff_UTIL_ITEM_CALLBACK) {
-
-    interface OnItemClickListener {
-    	fun itemClick(DetailItem: DetailItem)
-    }
+class ItemListAdapter : ListAdapter<DetailItem, DetailItemViewHolder>(DIFF_UTIL_ITEM_CALLBACK) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DetailItemViewHolder {
 
-        // 生成されたBinding Classを使えば、fromが必要なくなる?　そもそも、fromの意味とは?
     	val layoutInflater = LayoutInflater.from(parent.context)
         val binding = LayoutItemBinding.inflate(layoutInflater, parent, false)
 
@@ -132,7 +142,7 @@ class ItemListAdapter(
     // 生成されたBinding Classを引数で渡す。
     override fun onBindViewHolder(holderDetailItem: DetailItemViewHolder, position: Int) {
 
-        holderDetailItem.bind(getItem(position), itemClickListener)
+        holderDetailItem.bind(getItem(position))
     }
 }
 
@@ -144,14 +154,22 @@ class DetailItemViewHolder(
     // Objectを渡して、このメソッドでバインドする
     fun bind(
         detailItem: DetailItem,
-        itemClickListener: ItemListAdapter.OnItemClickListener
     ) {
-        binding.repositoryNameView.text = detailItem.name
+        binding.repositoryNameView.text = detailItem.fullName
 
         binding.repositoryNameView.setOnClickListener {
 
-            //ここで, Navigationの呼び出しを行う try-catchで
-            itemClickListener.itemClick(detailItem)
+            // 遷移時に、try-catchを追加
+            try {
+
+                val action= SearchFragmentDirections
+                    .actionSearchFragmentToDetailFragment(detailItem)
+
+                binding.repositoryNameView.findNavController().navigate(action)
+
+            } catch (e: Exception) {
+                Log.d("onItemClickListener", e.toString())
+            }
         }
     }
 }
