@@ -1,6 +1,7 @@
 package jp.co.yumemi.android.code_check.util
 
-import jp.co.yumemi.android.code_check.DetailItem
+import jp.co.yumemi.android.code_check.model.DetailItem
+
 
 sealed class Result{
 

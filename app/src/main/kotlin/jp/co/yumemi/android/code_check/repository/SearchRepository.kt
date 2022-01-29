@@ -1,15 +1,12 @@
 package jp.co.yumemi.android.code_check.repository
 
 import android.util.Log
-import jp.co.yumemi.android.code_check.DetailItem
 import jp.co.yumemi.android.code_check.api.RetrofitInstance
-import jp.co.yumemi.android.code_check.util.Result
+import jp.co.yumemi.android.code_check.model.DetailItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import okio.IOException
-import retrofit2.HttpException
 
 class SearchRepository {
 

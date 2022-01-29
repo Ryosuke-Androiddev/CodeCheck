@@ -3,7 +3,6 @@
  */
 package jp.co.yumemi.android.code_check
 
-import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
 
 class SearchViewModel(
     private val searchRepository: SearchRepository
@@ -36,14 +34,3 @@ class SearchViewModel(
             }
     }
 }
-
-@Parcelize
-data class DetailItem(
-    val fullName: String,
-    val avatarUrl: String,
-    val language: String?,
-    val stargazersCount: Long,
-    val watchersCount: Long,
-    val forksCount: Long,
-    val openIssuesCount: Long,
-) : Parcelable

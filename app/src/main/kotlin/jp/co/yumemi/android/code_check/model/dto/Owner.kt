@@ -1,4 +1,4 @@
-package jp.co.yumemi.android.code_check.model
+package jp.co.yumemi.android.code_check.model.dto
 
 
 import com.google.gson.annotations.SerializedName
