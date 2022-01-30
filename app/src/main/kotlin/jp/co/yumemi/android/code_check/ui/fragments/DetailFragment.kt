@@ -7,7 +7,9 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.navArgs
@@ -21,8 +23,18 @@ class DetailFragment : Fragment(R.layout.fragment_detail) {
     private val args: DetailFragmentArgs by navArgs()
 
     // view inflate
-    private var binding: FragmentDetailBinding? = null
-    private val _binding get() = binding!!
+    private var _binding: FragmentDetailBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = FragmentDetailBinding.inflate(inflater, container, false)
+
+        return binding.root
+    }
 
     // MainActivity から、lateinit を削除後，呼び出された時刻を表示する．
     @SuppressLint("SetTextI18n")
@@ -33,19 +45,21 @@ class DetailFragment : Fragment(R.layout.fragment_detail) {
         // ここに対しての，lateinit を削除した．
         Log.d("検索した日時", LocalDate.now().toString())
 
-        // Viewの生成方法に違和感あり
-        binding = FragmentDetailBinding.bind(view)
-
         // this is navigated item
         val item = args.item
 
         // set info into view using viewBinding
-        _binding.ownerIconView.load(item.avatarUrl);
-        _binding.nameView.text = item.fullName;
-        _binding.languageView.text = item.language;
-        _binding.starsView.text = "${item.stargazersCount} stars";
-        _binding.watchersView.text = "${item.watchersCount} watchers";
-        _binding.forksView.text = "${item.forksCount} forks";
-        _binding.openIssuesView.text = "${item.openIssuesCount} open issues";
+        binding.ownerIconView.load(item.avatarUrl);
+        binding.nameView.text = item.fullName;
+        binding.languageView.text = item.language;
+        binding.starsView.text = "${item.stargazersCount} stars";
+        binding.watchersView.text = "${item.watchersCount} watchers";
+        binding.forksView.text = "${item.forksCount} forks";
+        binding.openIssuesView.text = "${item.openIssuesCount} open issues";
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

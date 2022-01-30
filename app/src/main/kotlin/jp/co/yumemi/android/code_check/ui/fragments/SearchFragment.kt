@@ -5,11 +5,14 @@ package jp.co.yumemi.android.code_check
 
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import androidx.compose.material.CircularProgressIndicator
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.*
 import jp.co.yumemi.android.code_check.adapter.ItemListAdapter
@@ -18,12 +21,21 @@ import jp.co.yumemi.android.code_check.repository.SearchRepository
 import jp.co.yumemi.android.code_check.util.Result
 import jp.co.yumemi.android.code_check.viewmodel.SearchViewModelFactory
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 class SearchFragment: Fragment(R.layout.fragment_search) {
+
+    private var _binding: FragmentSearchBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = FragmentSearchBinding.inflate(inflater, container, false)
+
+        return binding.root
+    }
 
     // onCreatedView() の戻り値である View の初期化を行う → Data Binding を使わない
     // 引数で与えたレイアウトをinflateされて、戻り値となる
@@ -31,23 +43,14 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
 
         super.onViewCreated(view, savedInstanceState)
 
-        // inflate されたViewをどこで取得する
-        val binding = FragmentSearchBinding.bind(view)
-
         val repository = SearchRepository()
         val viewModelProviderFactory = SearchViewModelFactory(repository)
         val viewModel = ViewModelProvider(this, viewModelProviderFactory)[SearchViewModel::class.java]
 
         Log.d("ViewModel", "$viewModel created")
 
-        val layoutManager= LinearLayoutManager(requireContext())
-
-        // RecyclerView における境界線
-        val dividerItemDecoration=
-            DividerItemDecoration(requireContext(), layoutManager.orientation)
-
-        // 引数をとらないように変更を加える
         val adapter = ItemListAdapter()
+        setupRecyclerView(adapter = adapter)
 
         // Input に対する入力を、Enterキーを使って検知している
         binding.searchInputText
@@ -60,40 +63,18 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                     editText.text?.toString()?.let { searchQuery ->
                         if (searchQuery.isNotEmpty()) {
 
-//                            viewModel.searchResult.onEach {
-//
-//                                viewModel.searchResult.collect { result ->
-//
-//                                    when(result){
-//
-//                                        is Result.Success -> {
-//                                            adapter.submitList(result.data)
-//                                            Log.d("Result Success", "${viewModel.searchResult.value}")
-//                                            Log.d("Result Success", "${result.data}")
-//                                        }
-//                                        is Result.Error -> {
-//                                            Log.d("Result Error", result.message)
-//                                            Log.d("Result Error", "${viewModel.searchResult.value}")
-//                                        }
-//                                        is Result.Idle -> {
-//                                            Log.d("Result Idle", "${viewModel.searchResult.value}")
-//                                        }
-//                                        is Result.Loading -> {
-//                                            Log.d("Result Loading", "Loading State")
-//                                        }
-//                                    }
-//                                }
-//                            }.launchIn(viewLifecycleOwner.lifecycleScope)
                                 viewModel.searchGithubRepository(searchQuery)
 
                                 viewLifecycleOwner.lifecycleScope.launchWhenCreated {
 
-                                viewModel.searchResult.flowWithLifecycle(lifecycle).collectLatest { result ->
+                                viewModel.searchResult.collect { result ->
 
                                     when(result){
 
                                         is Result.Success -> {
+
                                             adapter.submitList(result.data)
+                                            binding.composeView.isVisible = false
 
                                             Log.d("Result Success", "${viewModel.searchResult.value}")
                                             Log.d("Result Success", "${result.data}")
@@ -106,6 +87,13 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                                             Log.d("Result Idle", "${viewModel.searchResult.value}")
                                         }
                                         is Result.Loading -> {
+
+                                            binding.composeView.isVisible = true
+                                            binding.composeView.apply {
+                                                setContent {
+                                                    CircularProgressIndicator()
+                                                }
+                                            }
                                             Log.d("Result Loading", "Loading State")
                                         }
                                     }
@@ -118,11 +106,20 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                 }
                 return@setOnEditorActionListener false
             }
+    }
 
-        binding.recyclerView.also{
-            it.layoutManager= layoutManager
-            it.addItemDecoration(dividerItemDecoration)
-            it.adapter= adapter
-        }
+    private fun setupRecyclerView(adapter: ItemListAdapter) {
+
+        binding.recyclerView.adapter = adapter
+        val layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerView.layoutManager = layoutManager
+        val dividerItemDecoration=
+            DividerItemDecoration(requireContext(), layoutManager.orientation)
+        binding.recyclerView.addItemDecoration(dividerItemDecoration)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
