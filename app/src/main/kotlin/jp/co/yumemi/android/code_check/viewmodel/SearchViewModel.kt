@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.yumemi.android.code_check.repository.SearchRepository
 import jp.co.yumemi.android.code_check.util.Result
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -22,10 +21,12 @@ class SearchViewModel(
 
     // Avoid using GlobalScope
     // Flow の例外キャッチを、catch を用いて行う
-    fun searchGithubRepository(query: String) = viewModelScope.launch(Dispatchers.IO) {
+    fun searchGithubRepository(query: String) = viewModelScope.launch {
 
         Log.d("API Call", "called API")
+
         _searchResult.value = Result.Loading
+
         searchRepository.searchGithubRepository(query)
             .catch { e ->
                 _searchResult.value = Result.Error(e.toString())
