@@ -74,7 +74,7 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                                         is Result.Success -> {
 
                                             adapter.submitList(result.data)
-
+                                            binding.composeView.isVisible = false
 
                                             Log.d("Result Success", "${viewModel.searchResult.value}")
                                             Log.d("Result Success", "${result.data}")
@@ -87,6 +87,13 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                                             Log.d("Result Idle", "${viewModel.searchResult.value}")
                                         }
                                         is Result.Loading -> {
+
+                                            binding.composeView.isVisible = true
+                                            binding.composeView.apply {
+                                                setContent {
+                                                    CircularProgressIndicator()
+                                                }
+                                            }
                                             Log.d("Result Loading", "Loading State")
                                         }
                                     }
