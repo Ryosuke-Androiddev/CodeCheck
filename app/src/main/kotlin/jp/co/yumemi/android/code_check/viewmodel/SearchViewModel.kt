@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.yumemi.android.code_check.repository.SearchRepository
 import jp.co.yumemi.android.code_check.util.Result
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -36,4 +37,5 @@ class SearchViewModel(
             }
 
     }
+
 }

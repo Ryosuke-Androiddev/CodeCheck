@@ -12,8 +12,8 @@ class SearchRepository {
 
     fun searchGithubRepository(query: String): Flow<List<DetailItem>> = flow<List<DetailItem>> {
 
-        // List<DetailItem>>形式に変換
-        val detailItemList = RetrofitInstance.githubApi.searchGithubRepository(query).toDetailItemList()
+        // List<DetailItem>>形式に変換 mapを使って，コードの可読性を向上させる．
+        val detailItemList = RetrofitInstance.githubApi.searchGithubRepository(query).items.map { it.toDetailItem() }
         emit(detailItemList)
 
         Log.d("API Call", "called API")

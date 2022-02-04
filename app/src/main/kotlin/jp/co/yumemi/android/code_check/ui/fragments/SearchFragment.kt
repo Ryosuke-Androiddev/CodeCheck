@@ -52,7 +52,6 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         val adapter = ItemListAdapter()
         setupRecyclerView(adapter = adapter)
 
-        // Input に対する入力を、Enterキーを使って検知している
         binding.searchInputText
             .setOnEditorActionListener { editText, action, _ ->
 
@@ -62,50 +61,51 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                     // null check 後に、空文字のチェックを通過後に、searchRepository を呼び出す
                     editText.text?.toString()?.let { searchQuery ->
                         if (searchQuery.isNotEmpty()) {
-
-                                viewModel.searchGithubRepository(searchQuery)
-
-                                viewLifecycleOwner.lifecycleScope.launchWhenCreated {
-
-                                viewModel.searchResult.collect { result ->
-
-                                    when(result){
-
-                                        is Result.Success -> {
-
-                                            adapter.submitList(result.data)
-                                            binding.composeView.isVisible = false
-
-                                            Log.d("Result Success", "${viewModel.searchResult.value}")
-                                            Log.d("Result Success", "${result.data}")
-                                        }
-                                        is Result.Error -> {
-                                            Log.d("Result Error", result.message)
-                                            Log.d("Result Error", "${viewModel.searchResult.value}")
-                                        }
-                                        is Result.Idle -> {
-                                            Log.d("Result Idle", "${viewModel.searchResult.value}")
-                                        }
-                                        is Result.Loading -> {
-
-                                            binding.composeView.isVisible = true
-                                            binding.composeView.apply {
-                                                setContent {
-                                                    CircularProgressIndicator()
-                                                }
-                                            }
-                                            Log.d("Result Loading", "Loading State")
-                                        }
-                                    }
-                                }
-                            }
-
+                            viewModel.searchGithubRepository(searchQuery)
                         }
                     }
                     return@setOnEditorActionListener true
                 }
                 return@setOnEditorActionListener false
             }
+
+        viewLifecycleOwner.lifecycleScope.launchWhenCreated {
+
+            viewModel.searchResult.collect { result ->
+
+                when(result){
+
+                    is Result.Success -> {
+
+                        adapter.submitList(result.data)
+                        binding.composeView.isVisible = false
+
+                        Log.d("Result Success", "${viewModel.searchResult.value}")
+                        Log.d("Result Success", "${result.data}")
+                    }
+                    is Result.Error -> {
+                        Log.d("Result Error", result.message)
+                        Log.d("Result Error", "${viewModel.searchResult.value}")
+                    }
+                    is Result.Idle -> {
+                        Log.d("Result Idle", "${viewModel.searchResult.value}")
+                    }
+                    is Result.Loading -> {
+
+                        binding.composeView.isVisible = true
+                        binding.composeView.apply {
+                            setContent {
+                                CircularProgressIndicator()
+                            }
+                        }
+                        Log.d("Result Loading", "Loading State")
+                    }
+                }
+            }
+        }
+
+        // Input に対する入力を、Enterキーを使って検知している
+
     }
 
     private fun setupRecyclerView(adapter: ItemListAdapter) {
