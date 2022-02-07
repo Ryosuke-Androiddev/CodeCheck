@@ -1,7 +1,7 @@
 /*
  * Copyright © 2021 YUMEMI Inc. All rights reserved.
  */
-package jp.co.yumemi.android.code_check
+package jp.co.yumemi.android.code_check.ui.fragments.search
 
 import android.os.Bundle
 import android.util.Log
@@ -12,15 +12,21 @@ import android.view.inputmethod.EditorInfo
 import androidx.compose.material.CircularProgressIndicator
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.*
+import jp.co.yumemi.android.code_check.R
+import jp.co.yumemi.android.code_check.SearchViewModel
 import jp.co.yumemi.android.code_check.adapter.ItemListAdapter
 import jp.co.yumemi.android.code_check.databinding.FragmentSearchBinding
 import jp.co.yumemi.android.code_check.repository.SearchRepository
+import jp.co.yumemi.android.code_check.ui.fragments.search.component.ShowLoadingView
 import jp.co.yumemi.android.code_check.util.Result
 import jp.co.yumemi.android.code_check.viewmodel.SearchViewModelFactory
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class SearchFragment: Fragment(R.layout.fragment_search) {
 
@@ -33,6 +39,8 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentSearchBinding.inflate(inflater, container, false)
+
+        Log.d("Inflate", "Search Fragment view inflated")
 
         return binding.root
     }
@@ -52,7 +60,6 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         val adapter = ItemListAdapter()
         setupRecyclerView(adapter = adapter)
 
-        // Input に対する入力を、Enterキーを使って検知している
         binding.searchInputText
             .setOnEditorActionListener { editText, action, _ ->
 
@@ -62,50 +69,54 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                     // null check 後に、空文字のチェックを通過後に、searchRepository を呼び出す
                     editText.text?.toString()?.let { searchQuery ->
                         if (searchQuery.isNotEmpty()) {
-
-                                viewModel.searchGithubRepository(searchQuery)
-
-                                viewLifecycleOwner.lifecycleScope.launchWhenCreated {
-
-                                viewModel.searchResult.collect { result ->
-
-                                    when(result){
-
-                                        is Result.Success -> {
-
-                                            adapter.submitList(result.data)
-                                            binding.composeView.isVisible = false
-
-                                            Log.d("Result Success", "${viewModel.searchResult.value}")
-                                            Log.d("Result Success", "${result.data}")
-                                        }
-                                        is Result.Error -> {
-                                            Log.d("Result Error", result.message)
-                                            Log.d("Result Error", "${viewModel.searchResult.value}")
-                                        }
-                                        is Result.Idle -> {
-                                            Log.d("Result Idle", "${viewModel.searchResult.value}")
-                                        }
-                                        is Result.Loading -> {
-
-                                            binding.composeView.isVisible = true
-                                            binding.composeView.apply {
-                                                setContent {
-                                                    CircularProgressIndicator()
-                                                }
-                                            }
-                                            Log.d("Result Loading", "Loading State")
-                                        }
-                                    }
-                                }
-                            }
-
+                            viewModel.searchGithubRepository(searchQuery)
                         }
                     }
                     return@setOnEditorActionListener true
                 }
                 return@setOnEditorActionListener false
             }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            Log.d("Current State", "${lifecycle.currentState}")
+
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                viewModel.searchResult.collect { result ->
+
+                    Log.d("Current flow State", "${lifecycle.currentState}")
+
+                    when(result){
+
+                        is Result.Success -> {
+
+                            adapter.submitList(result.data)
+
+                            Log.d("Result Success", "${viewModel.searchResult.value}")
+                            Log.d("Result Success", "${result.data}")
+                            Log.d("Current Success State", "${lifecycle.currentState}")
+                        }
+                        is Result.Error -> {
+                            Log.d("Result Error", result.message)
+                            Log.d("Result Error", "${viewModel.searchResult.value}")
+                        }
+                        is Result.Idle -> {
+                            Log.d("Result Idle", "${viewModel.searchResult.value}")
+                        }
+                        is Result.Loading -> {
+
+                            binding.composeView.apply {
+                                setContent {
+                                    ShowLoadingView(viewModel = viewModel)
+                                }
+                            }
+                            Log.d("Result Loading", "Loading State")
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun setupRecyclerView(adapter: ItemListAdapter) {
@@ -121,5 +132,6 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        Log.d("Destroy", "Search Fragment view destroyed")
     }
 }

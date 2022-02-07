@@ -1,7 +1,7 @@
 /*
  * Copyright © 2021 YUMEMI Inc. All rights reserved.
  */
-package jp.co.yumemi.android.code_check.ui.fragments
+package jp.co.yumemi.android.code_check.ui.fragments.detail
 
 import android.annotation.SuppressLint
 import android.os.Build
@@ -33,6 +33,8 @@ class DetailFragment : Fragment(R.layout.fragment_detail) {
     ): View? {
         _binding = FragmentDetailBinding.inflate(inflater, container, false)
 
+        Log.d("Inflated", "Detail Fragment view inflated")
+
         return binding.root
     }
 
@@ -61,5 +63,6 @@ class DetailFragment : Fragment(R.layout.fragment_detail) {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        Log.d("Destroy", "Detail Fragment view destroyed")
     }
 }
