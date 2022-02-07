@@ -31,11 +31,11 @@ class SearchViewModel(
 
         _loadingState.value = true
 
-        delay(1000L)
-
         Log.d("API Call", "called API")
 
         _searchResult.value = Result.Loading
+
+        delay(1000L)
 
         searchRepository.searchGithubRepository(query)
             .catch { e ->
