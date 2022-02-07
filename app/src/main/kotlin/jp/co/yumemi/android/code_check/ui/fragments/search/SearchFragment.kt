@@ -1,7 +1,7 @@
 /*
  * Copyright © 2021 YUMEMI Inc. All rights reserved.
  */
-package jp.co.yumemi.android.code_check
+package jp.co.yumemi.android.code_check.ui.fragments.search
 
 import android.os.Bundle
 import android.util.Log
@@ -12,15 +12,21 @@ import android.view.inputmethod.EditorInfo
 import androidx.compose.material.CircularProgressIndicator
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.*
+import jp.co.yumemi.android.code_check.R
+import jp.co.yumemi.android.code_check.SearchViewModel
 import jp.co.yumemi.android.code_check.adapter.ItemListAdapter
 import jp.co.yumemi.android.code_check.databinding.FragmentSearchBinding
 import jp.co.yumemi.android.code_check.repository.SearchRepository
+import jp.co.yumemi.android.code_check.ui.fragments.search.component.ShowLoadingView
 import jp.co.yumemi.android.code_check.util.Result
 import jp.co.yumemi.android.code_check.viewmodel.SearchViewModelFactory
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class SearchFragment: Fragment(R.layout.fragment_search) {
 
@@ -33,6 +39,8 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentSearchBinding.inflate(inflater, container, false)
+
+        Log.d("Inflate", "Search Fragment view inflated")
 
         return binding.root
     }
@@ -69,43 +77,46 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
                 return@setOnEditorActionListener false
             }
 
-        viewLifecycleOwner.lifecycleScope.launchWhenCreated {
+        viewLifecycleOwner.lifecycleScope.launch {
 
-            viewModel.searchResult.collect { result ->
+            Log.d("Current State", "${lifecycle.currentState}")
 
-                when(result){
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
 
-                    is Result.Success -> {
+                viewModel.searchResult.collect { result ->
 
-                        adapter.submitList(result.data)
-                        binding.composeView.isVisible = false
+                    Log.d("Current flow State", "${lifecycle.currentState}")
 
-                        Log.d("Result Success", "${viewModel.searchResult.value}")
-                        Log.d("Result Success", "${result.data}")
-                    }
-                    is Result.Error -> {
-                        Log.d("Result Error", result.message)
-                        Log.d("Result Error", "${viewModel.searchResult.value}")
-                    }
-                    is Result.Idle -> {
-                        Log.d("Result Idle", "${viewModel.searchResult.value}")
-                    }
-                    is Result.Loading -> {
+                    when(result){
 
-                        binding.composeView.isVisible = true
-                        binding.composeView.apply {
-                            setContent {
-                                CircularProgressIndicator()
-                            }
+                        is Result.Success -> {
+
+                            adapter.submitList(result.data)
+
+                            Log.d("Result Success", "${viewModel.searchResult.value}")
+                            Log.d("Result Success", "${result.data}")
+                            Log.d("Current Success State", "${lifecycle.currentState}")
                         }
-                        Log.d("Result Loading", "Loading State")
+                        is Result.Error -> {
+                            Log.d("Result Error", result.message)
+                            Log.d("Result Error", "${viewModel.searchResult.value}")
+                        }
+                        is Result.Idle -> {
+                            Log.d("Result Idle", "${viewModel.searchResult.value}")
+                        }
+                        is Result.Loading -> {
+
+                            binding.composeView.apply {
+                                setContent {
+                                    ShowLoadingView(viewModel = viewModel)
+                                }
+                            }
+                            Log.d("Result Loading", "Loading State")
+                        }
                     }
                 }
             }
         }
-
-        // Input に対する入力を、Enterキーを使って検知している
-
     }
 
     private fun setupRecyclerView(adapter: ItemListAdapter) {
@@ -121,5 +132,6 @@ class SearchFragment: Fragment(R.layout.fragment_search) {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        Log.d("Destroy", "Search Fragment view destroyed")
     }
 }

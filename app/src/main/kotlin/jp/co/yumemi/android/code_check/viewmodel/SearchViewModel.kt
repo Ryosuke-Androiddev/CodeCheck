@@ -4,6 +4,8 @@
 package jp.co.yumemi.android.code_check
 
 import android.util.Log
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.yumemi.android.code_check.repository.SearchRepository
@@ -19,10 +21,17 @@ class SearchViewModel(
     private val _searchResult: MutableStateFlow<Result> = MutableStateFlow(Result.Idle)
     val searchResult: StateFlow<Result> = _searchResult
 
+    private val _loadingState = mutableStateOf(false)
+    val loadingState: State<Boolean> = _loadingState
+
 
     // Avoid using GlobalScope
     // Flow の例外キャッチを、catch を用いて行う
     fun searchGithubRepository(query: String) = viewModelScope.launch {
+
+        _loadingState.value = true
+
+        delay(1000L)
 
         Log.d("API Call", "called API")
 
@@ -35,6 +44,8 @@ class SearchViewModel(
                     data ->
                 _searchResult.value = Result.Success(data)
             }
+
+        _loadingState.value = false
 
     }
 

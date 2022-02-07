@@ -7,9 +7,9 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import jp.co.yumemi.android.code_check.SearchFragmentDirections
 import jp.co.yumemi.android.code_check.databinding.LayoutItemBinding
 import jp.co.yumemi.android.code_check.model.DetailItem
+import jp.co.yumemi.android.code_check.ui.fragments.search.SearchFragmentDirections
 
 // 作成したDiffUtilは，ViewHolderの中で呼び出しを行う
 val DIFF_UTIL_ITEM_CALLBACK = object: DiffUtil.ItemCallback<DetailItem>() {
@@ -68,6 +68,7 @@ class DetailItemViewHolder(
             // 遷移時に、try-catchを追加
             try {
 
+                // 別の関数で置き換えるのあり
                 val action= SearchFragmentDirections
                     .actionSearchFragmentToDetailFragment(detailItem)
 
